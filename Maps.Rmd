@@ -1,0 +1,98 @@
+---
+title: "Visualizacion de datos espaciales con R : maps"
+author: "Elena Chicaiza"
+date: "25/3/2017"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Librerías
+
+```{r}
+library(sp)
+library(maps)
+library(mapdata)
+library(rgdal)
+library(maptools)
+library(RColorBrewer)
+library(knitr)
+library(rmarkdown)
+```
+
+# Mapa del mundo
+```{r}
+map('worldHires')
+```
+
+# Perfil de España
+
+```{r}
+map('worldHires','Spain')
+points(c(-3.682746,2.1734066),c(40.4893538,41.4850595),pch=19, col="red",cex=0.5)
+text(x=c(-3.682746,2.1734066),y=c(40.4893538,41.4850595),labels = c("Madrid", "Barcelona"), pos = 3)
+```
+
+# Otras fuentes de información
+
+## Descarga de archivos
+
+```{r}
+# Descarga de datos geográficos desde la web
+download.file(url="http://datos.madrid.es/egob/catalogo/205193-0-semaforos-foto-rojo.zip", "205193-0-semaforos-foto-rojo.zip", "auto")
+unzip("205193-0-semaforos-foto-rojo.zip")
+file.remove("205193-0-semaforos-foto-rojo.zip")
+semaforos_foto<- readOGR(".", "foto-rojo")
+```
+
+```{r}
+download.file("http://datos.madrid.es/egob/catalogo/200078-9-distritos-barrios.zip", "200078-9-distritos-barrios.zip", "auto")
+unzip("200078-9-distritos-barrios.zip")
+file.remove("200078-9-distritos-barrios.zip")
+```
+
+## Lectura de archivos en R
+
+```{r}
+ogrInfo("./SHP_ETRS89", "DISTRITOS")
+distritos<- readOGR("./SHP_ETRS89", "DISTRITOS")
+```
+
+## Mapa básico de los distritos de Madrid con la ubicación de semáforos foto
+
+```{r}
+plot(distritos)
+points(semaforos_foto)
+```
+
+## Personalizando colores
+
+```{r colores}
+colour <- sample(1:8, length(distritos), replace=T)
+distritos$colour <- colour
+palette <- brewer.pal(8,"Purples")
+```
+
+## Ploteo con algunas opciones más
+
+```{r plot}
+plot(distritos, border=F, col=palette[distritos$colour])
+points(semaforos_foto, col="red", pch=18)
+```
+
+```{r}
+Madrid<-SpatialPolygons2map(distritos, namefield = "NOMBRE")
+map(Madrid)
+points(semaforos_foto, col="green", pch=18)
+```
+
+
